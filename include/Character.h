@@ -2,6 +2,7 @@
 
 #include "GameObject.h"
 #include <string>
+#include <optional>
 
 /**
  * Abstract animated character class shared by the player vampire and wolves.
@@ -56,7 +57,7 @@ private:
     void buildSpriteSheet(const sf::Color& primaryColor, const sf::Color& secondaryColor);
 
     sf::Texture texture;
-    sf::Sprite sprite;
+    std::optional<sf::Sprite> sprite;
     sf::Vector2u frameSize{32U, 32U};
     int frameCount{2};
     int currentFrame{0};

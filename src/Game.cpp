@@ -7,24 +7,25 @@
 #include <SFML/Window/Event.hpp>
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <sstream>
 
 Game::Game(unsigned int wolfCount)
-    : window(sf::VideoMode(WindowWidth, WindowHeight), "Vampire Survival"),
+    : window(sf::VideoMode(sf::Vector2u(WindowWidth, WindowHeight)), "Vampire Survival"),
       randomEngine(std::random_device{}()),
       configuredWolfCount(wolfCount) {
     window.setFramerateLimit(60);
     fontLoaded = loadHudFont();
     if (fontLoaded) {
-        hudText.setFont(font);
-        hudText.setCharacterSize(20);
-        hudText.setFillColor(sf::Color::White);
-        hudText.setPosition(12.f, 8.f);
+        hudText = std::make_unique<sf::Text>(font);
+        hudText->setCharacterSize(20);
+        hudText->setFillColor(sf::Color::White);
+        hudText->setPosition(sf::Vector2f(12.f, 8.f));
 
-        messageText.setFont(font);
-        messageText.setCharacterSize(38);
-        messageText.setFillColor(sf::Color(255, 230, 150));
-        messageText.setPosition(190.f, 345.f);
+        messageText = std::make_unique<sf::Text>(font);
+        messageText->setCharacterSize(38);
+        messageText->setFillColor(sf::Color(255, 230, 150));
+        messageText->setPosition(sf::Vector2f(190.f, 345.f));
     }
     createWorld(wolfCount);
 }
@@ -38,16 +39,15 @@ void Game::run() {
 }
 
 void Game::processInput() {
-    sf::Event event{};
-    while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
+    while (const std::optional<sf::Event> event = window.pollEvent()) {
+        if (event->is<sf::Event::Closed>()) {
             window.close();
         }
-        if (event.type == sf::Event::KeyPressed) {
-            if (event.key.code == sf::Keyboard::Escape) {
+        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            if (keyPressed->code == sf::Keyboard::Key::Escape) {
                 window.close();
             }
-            if (event.key.code == sf::Keyboard::R && (won || gameOver)) {
+            if (keyPressed->code == sf::Keyboard::Key::R && (won || gameOver)) {
                 reset(configuredWolfCount);
             }
         }
@@ -100,13 +100,13 @@ void Game::render() {
         object->draw(window);
     }
     if (fontLoaded) {
-        window.draw(hudText);
+        window.draw(*hudText);
         if (won) {
-            messageText.setString("You reached the tomb! Press R to restart.");
-            window.draw(messageText);
+            messageText->setString("You reached the tomb! Press R to restart.");
+            window.draw(*messageText);
         } else if (gameOver) {
-            messageText.setString("Game Over! Press R to restart.");
-            window.draw(messageText);
+            messageText->setString("Game Over! Press R to restart.");
+            window.draw(*messageText);
         }
     }
     window.display();
@@ -175,7 +175,7 @@ void Game::handleCollisions() {
         if (auto* wolf = dynamic_cast<Wolf*>(object.get())) {
             if (wolf->isAlive() && overlaps(*vampire, *wolf)) {
                 wolf->attack(*vampire);
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
                     wolf->takeDamage(vampire->getDamage());
                     if (!wolf->isAlive()) {
                         score += 100;
@@ -213,7 +213,7 @@ void Game::updateHud() {
            << (vampire->isHidden() ? "   Hidden from sun" : "   In sunlight");
 
     if (fontLoaded) {
-        hudText.setString(stream.str());
+        hudText->setString(stream.str());
     }
     window.setTitle("Vampire Survival - " + stream.str());
 }
@@ -227,7 +227,7 @@ bool Game::loadHudFont() {
     };
 
     for (const auto& path : paths) {
-        if (font.loadFromFile(path)) {
+        if (font.openFromFile(path)) {
             return true;
         }
     }

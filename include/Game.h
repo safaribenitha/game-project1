@@ -61,6 +61,6 @@ private:
 
     sf::Font font;
     bool fontLoaded{false};
-    sf::Text hudText;
-    sf::Text messageText;
+    std::unique_ptr<sf::Text> hudText;
+    std::unique_ptr<sf::Text> messageText;
 };

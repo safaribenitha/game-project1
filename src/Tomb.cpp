@@ -5,13 +5,13 @@ Tomb::Tomb(const sf::Vector2f& tombPosition) : position(tombPosition) {
     base.setFillColor(sf::Color(120, 120, 125));
     base.setOutlineColor(sf::Color(45, 45, 50));
     base.setOutlineThickness(3.f);
-    base.setOrigin(39.f, 24.f);
+    base.setOrigin(sf::Vector2f(39.f, 24.f));
     base.setPosition(position);
 
     lid.setSize(sf::Vector2f(88.f, 14.f));
     lid.setFillColor(sf::Color(150, 150, 155));
-    lid.setOrigin(44.f, 7.f);
-    lid.setPosition(position.x, position.y - 31.f);
+    lid.setOrigin(sf::Vector2f(44.f, 7.f));
+    lid.setPosition(sf::Vector2f(position.x, position.y - 31.f));
 }
 
 void Tomb::update(float) {}

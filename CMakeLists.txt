@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
+find_package(SFML  COMPONENTS Graphics Window System REQUIRED)
 
 add_executable(VampireSurvival
     main.cpp
@@ -21,4 +21,4 @@ add_executable(VampireSurvival
 )
 
 target_include_directories(VampireSurvival PRIVATE include)
-target_link_libraries(VampireSurvival PRIVATE sfml-graphics sfml-window sfml-system)
+target_link_libraries(VampireSurvival PRIVATE SFML::Graphics SFML::Window SFML::System)

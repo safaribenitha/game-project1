@@ -18,7 +18,8 @@ Vampire Survival is a small C++/SFML survival game. You control a vampire racing
 
 | Key | Action |
 | --- | --- |
-| W/A/S/D or Arrow Keys | Move the vampire |
+| W | Move the vampire toward the tomb |
+| A/S/D or Arrow Keys | Additional movement controls |
 | Space | Attack nearby wolves |
 | R | Restart after winning or losing |
 | Escape | Quit |
@@ -27,7 +28,7 @@ Vampire Survival is a small C++/SFML survival game. You control a vampire racing
 
 - C++17 compiler
 - CMake 3.16 or newer
-- SFML 2.5 or newer development libraries
+- SFML 3.0 or newer development libraries
 
 ### Ubuntu/Debian SFML install
 
@@ -87,4 +88,4 @@ VampireSurvival/
 
 ## Game Goal
 
-Reach the tomb before dying. Wolves move toward the vampire and attack on contact. The sun steadily damages the vampire unless you hide near trees. Collect red health pickups to recover HP and yellow dagger pickups to increase attack damage.
+Reach the tomb before dying. Wolves move toward the vampire and attack on contact. The sun steadily damages the vampire unless you hide near trees. Collect health pickups to recover HP and dagger pickups to increase attack damage.

@@ -1,0 +1,242 @@
+#include "Game.h"
+#include "DaggerPickup.h"
+#include "HealthPickup.h"
+#include "Pickup.h"
+#include "Tree.h"
+#include "Wolf.h"
+#include <SFML/Window/Event.hpp>
+#include <algorithm>
+#include <cmath>
+#include <sstream>
+
+Game::Game(unsigned int wolfCount)
+    : window(sf::VideoMode(WindowWidth, WindowHeight), "Vampire Survival"),
+      randomEngine(std::random_device{}()),
+      configuredWolfCount(wolfCount) {
+    window.setFramerateLimit(60);
+    fontLoaded = loadHudFont();
+    if (fontLoaded) {
+        hudText.setFont(font);
+        hudText.setCharacterSize(20);
+        hudText.setFillColor(sf::Color::White);
+        hudText.setPosition(12.f, 8.f);
+
+        messageText.setFont(font);
+        messageText.setCharacterSize(38);
+        messageText.setFillColor(sf::Color(255, 230, 150));
+        messageText.setPosition(190.f, 345.f);
+    }
+    createWorld(wolfCount);
+}
+
+void Game::run() {
+    while (window.isOpen()) {
+        processInput();
+        update();
+        render();
+    }
+}
+
+void Game::processInput() {
+    sf::Event event{};
+    while (window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            window.close();
+        }
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.code == sf::Keyboard::Escape) {
+                window.close();
+            }
+            if (event.key.code == sf::Keyboard::R && (won || gameOver)) {
+                reset(configuredWolfCount);
+            }
+        }
+    }
+}
+
+void Game::update() {
+    const float deltaTime = clock.restart().asSeconds();
+    if (won || gameOver) {
+        updateHud();
+        return;
+    }
+
+    for (const auto& object : objects) {
+        object->update(deltaTime);
+    }
+
+    if (vampire != nullptr) {
+        bool hidden = false;
+        for (const auto& object : objects) {
+            if (auto* tree = dynamic_cast<Tree*>(object.get())) {
+                if (distance(vampire->getPosition(), tree->getPosition()) < tree->getCollisionRadius()) {
+                    hidden = true;
+                    break;
+                }
+            }
+        }
+        vampire->setHidden(hidden);
+        vampire->applySunDamage(deltaTime);
+    }
+
+    handleCollisions();
+
+    if (vampire == nullptr || !vampire->isAlive()) {
+        gameOver = true;
+    }
+
+    objects.erase(std::remove_if(objects.begin(), objects.end(),
+                                 [this](const std::unique_ptr<GameObject>& object) {
+                                     return object.get() != vampire && !object->isActive();
+                                 }),
+                  objects.end());
+
+    updateHud();
+}
+
+void Game::render() {
+    window.clear(sf::Color(30, 30, 42));
+    for (const auto& object : objects) {
+        object->draw(window);
+    }
+    if (fontLoaded) {
+        window.draw(hudText);
+        if (won) {
+            messageText.setString("You reached the tomb! Press R to restart.");
+            window.draw(messageText);
+        } else if (gameOver) {
+            messageText.setString("Game Over! Press R to restart.");
+            window.draw(messageText);
+        }
+    }
+    window.display();
+}
+
+void Game::createWorld(unsigned int wolfCount) {
+    objects.clear();
+    score = 0;
+    won = false;
+    gameOver = false;
+
+    auto vampireObject = std::make_unique<Vampire>(sf::Vector2f(90.f, 90.f));
+    vampire = vampireObject.get();
+    objects.push_back(std::move(vampireObject));
+
+    auto tombObject = std::make_unique<Tomb>(sf::Vector2f(WindowWidth - 110.f, WindowHeight - 95.f));
+    tomb = tombObject.get();
+    objects.push_back(std::move(tombObject));
+
+    const sf::Vector2f treePositions[] = {
+        {210.f, 160.f}, {380.f, 280.f}, {620.f, 170.f}, {760.f, 430.f}, {255.f, 575.f}, {500.f, 610.f}
+    };
+    for (const auto& position : treePositions) {
+        objects.push_back(std::make_unique<Tree>(position));
+    }
+
+    for (unsigned int i = 0; i < wolfCount; ++i) {
+        objects.push_back(std::make_unique<Wolf>(randomPosition(80.f), vampire));
+    }
+
+    spawnRandomPickups(5, 3);
+    updateHud();
+}
+
+void Game::spawnRandomPickups(unsigned int healthCount, unsigned int daggerCount) {
+    for (unsigned int i = 0; i < healthCount; ++i) {
+        objects.push_back(std::make_unique<HealthPickup>(randomPosition(60.f)));
+    }
+    for (unsigned int i = 0; i < daggerCount; ++i) {
+        objects.push_back(std::make_unique<DaggerPickup>(randomPosition(60.f)));
+    }
+}
+
+sf::Vector2f Game::randomPosition(float margin) {
+    std::uniform_real_distribution<float> xDistribution(margin, WindowWidth - margin);
+    std::uniform_real_distribution<float> yDistribution(margin, WindowHeight - margin);
+    return sf::Vector2f(xDistribution(randomEngine), yDistribution(randomEngine));
+}
+
+float Game::distance(const sf::Vector2f& a, const sf::Vector2f& b) const {
+    const float dx = a.x - b.x;
+    const float dy = a.y - b.y;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+bool Game::overlaps(const GameObject& a, const GameObject& b) const {
+    return distance(a.getPosition(), b.getPosition()) <= a.getCollisionRadius() + b.getCollisionRadius();
+}
+
+void Game::handleCollisions() {
+    if (vampire == nullptr || tomb == nullptr) {
+        return;
+    }
+
+    for (const auto& object : objects) {
+        if (auto* wolf = dynamic_cast<Wolf*>(object.get())) {
+            if (wolf->isAlive() && overlaps(*vampire, *wolf)) {
+                wolf->attack(*vampire);
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
+                    wolf->takeDamage(vampire->getDamage());
+                    if (!wolf->isAlive()) {
+                        score += 100;
+                    }
+                }
+            }
+        } else if (auto* pickup = dynamic_cast<Pickup*>(object.get())) {
+            if (pickup->isActive() && overlaps(*vampire, *pickup)) {
+                pickup->apply(*vampire);
+                score += 25;
+            }
+        }
+    }
+
+    if (overlaps(*vampire, *tomb)) {
+        won = true;
+        score += 500;
+    }
+}
+
+void Game::updateHud() {
+    if (vampire == nullptr || tomb == nullptr) {
+        return;
+    }
+
+    const int hp = vampire->getHealth();
+    const int maxHp = vampire->getMaxHealth();
+    const float tombDistance = distance(vampire->getPosition(), tomb->getPosition());
+
+    std::ostringstream stream;
+    stream << "HP: " << hp << "/" << maxHp
+           << "   Score: " << score
+           << "   Tomb: " << static_cast<int>(tombDistance) << " px"
+           << "   Damage: " << vampire->getDamage()
+           << (vampire->isHidden() ? "   Hidden from sun" : "   In sunlight");
+
+    if (fontLoaded) {
+        hudText.setString(stream.str());
+    }
+    window.setTitle("Vampire Survival - " + stream.str());
+}
+
+bool Game::loadHudFont() {
+    const std::string paths[] = {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "C:/Windows/Fonts/arial.ttf"
+    };
+
+    for (const auto& path : paths) {
+        if (font.loadFromFile(path)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Game::reset(unsigned int wolfCount) {
+    vampire = nullptr;
+    tomb = nullptr;
+    createWorld(wolfCount);
+    clock.restart();
+}

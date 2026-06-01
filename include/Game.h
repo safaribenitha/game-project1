@@ -44,6 +44,7 @@ private:
     void reset(unsigned int wolfCount);
     void drawBackground();
     void drawHudPanel();
+    void drawLegend();
 
     static constexpr unsigned int WindowWidth = 1024;
     static constexpr unsigned int WindowHeight = 768;
@@ -65,4 +66,5 @@ private:
     bool fontLoaded{false};
     std::unique_ptr<sf::Text> hudText;
     std::unique_ptr<sf::Text> messageText;
+    std::unique_ptr<sf::Text> legendText;
 };

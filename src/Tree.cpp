@@ -57,5 +57,5 @@ sf::Vector2f Tree::getPosition() const {
 }
 
 float Tree::getCollisionRadius() const {
-    return 48.f;
+    return 72.f;
 }

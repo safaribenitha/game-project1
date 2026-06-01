@@ -26,6 +26,18 @@ Game::Game(unsigned int wolfCount)
         messageText->setCharacterSize(38);
         messageText->setFillColor(sf::Color(255, 230, 150));
         messageText->setPosition(sf::Vector2f(190.f, 345.f));
+
+        legendText = std::make_unique<sf::Text>(font);
+        legendText->setCharacterSize(17);
+        legendText->setFillColor(sf::Color(242, 240, 222));
+        legendText->setPosition(sf::Vector2f(18.f, 58.f));
+        legendText->setString(
+            "WASD = move\n"
+            "R = restart\n"
+            "Grey wolves chase you\n"
+            "Green cross heals\n"
+            "Dagger increases damage\n"
+            "Reach the tomb to win");
     }
     createWorld(wolfCount);
 }
@@ -47,7 +59,7 @@ void Game::processInput() {
             if (keyPressed->code == sf::Keyboard::Key::Escape) {
                 window.close();
             }
-            if (keyPressed->code == sf::Keyboard::Key::R && (won || gameOver)) {
+            if (keyPressed->code == sf::Keyboard::Key::R) {
                 reset(configuredWolfCount);
             }
         }
@@ -112,6 +124,7 @@ void Game::render() {
     if (fontLoaded) {
         drawHudPanel();
         window.draw(*hudText);
+        drawLegend();
         if (won) {
             messageText->setString("You reached the tomb! Press R to restart.");
             window.draw(*messageText);
@@ -121,6 +134,16 @@ void Game::render() {
         }
     }
     window.display();
+}
+
+void Game::drawLegend() {
+    sf::RectangleShape panel(sf::Vector2f(244.f, 158.f));
+    panel.setPosition(sf::Vector2f(12.f, 52.f));
+    panel.setFillColor(sf::Color(12, 13, 18, 178));
+    panel.setOutlineColor(sf::Color(230, 205, 132, 105));
+    panel.setOutlineThickness(1.f);
+    window.draw(panel);
+    window.draw(*legendText);
 }
 
 void Game::drawBackground() {
@@ -188,7 +211,7 @@ void Game::createWorld(unsigned int wolfCount) {
     won = false;
     gameOver = false;
 
-    auto vampireObject = std::make_unique<Vampire>(sf::Vector2f(90.f, 90.f));
+    auto vampireObject = std::make_unique<Vampire>(sf::Vector2f(90.f, WindowHeight * 0.5f));
     vampire = vampireObject.get();
     objects.push_back(std::move(vampireObject));
 
@@ -197,14 +220,14 @@ void Game::createWorld(unsigned int wolfCount) {
     objects.push_back(std::move(tombObject));
 
     const sf::Vector2f treePositions[] = {
-        {210.f, 160.f}, {380.f, 280.f}, {620.f, 170.f}, {760.f, 430.f}, {255.f, 575.f}, {500.f, 610.f}
+        {210.f, 330.f}, {360.f, 210.f}, {445.f, 510.f}, {620.f, 235.f}, {760.f, 430.f}, {560.f, 650.f}
     };
     for (const auto& position : treePositions) {
         objects.push_back(std::make_unique<Tree>(position));
     }
 
     for (unsigned int i = 0; i < wolfCount; ++i) {
-        objects.push_back(std::make_unique<Wolf>(randomPosition(80.f), vampire));
+        objects.push_back(std::make_unique<Wolf>(randomPosition(140.f), vampire));
     }
 
     spawnRandomPickups(5, 3);

@@ -14,6 +14,9 @@ public:
     /** Move toward the vampire and update attack cooldown/animation. */
     void update(float deltaTime) override;
 
+    /** Draw a dark wolf silhouette so enemies cannot be mistaken for the vampire. */
+    void draw(sf::RenderWindow& window) override;
+
     /** Damage the vampire when close enough and the cooldown has elapsed. */
     void attack(Vampire& vampire);
 

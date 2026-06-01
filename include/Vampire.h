@@ -26,6 +26,6 @@ public:
 
 private:
     bool hiddenFromSun{false};
-    float sunDamagePerSecond{6.f};
+    float sunDamagePerSecond{1.2f};
     float sunDamageAccumulator{0.f};
 };

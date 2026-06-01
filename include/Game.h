@@ -42,6 +42,8 @@ private:
     void updateHud();
     bool loadHudFont();
     void reset(unsigned int wolfCount);
+    void drawBackground();
+    void drawHudPanel();
 
     static constexpr unsigned int WindowWidth = 1024;
     static constexpr unsigned int WindowHeight = 768;

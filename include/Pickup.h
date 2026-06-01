@@ -26,6 +26,8 @@ public:
 
 protected:
     sf::Vector2f position;
+    sf::CircleShape glow;
     sf::CircleShape shape;
+    sf::CircleShape center;
     float pulseTimer{0.f};
 };

@@ -26,6 +26,13 @@ Character::Character(const sf::Vector2f& startPosition,
 }
 
 void Character::draw(sf::RenderWindow& window) {
+    sf::CircleShape shadow(17.f);
+    shadow.setOrigin(sf::Vector2f(17.f, 17.f));
+    shadow.setScale(sf::Vector2f(1.35f, 0.42f));
+    shadow.setPosition(sf::Vector2f(position.x, position.y + 18.f));
+    shadow.setFillColor(sf::Color(0, 0, 0, 85));
+    window.draw(shadow);
+
     if (sprite) {
         window.draw(*sprite);
     }
@@ -95,21 +102,67 @@ void Character::addDamage(int amount) {
 void Character::buildSpriteSheet(const sf::Color& primaryColor, const sf::Color& secondaryColor) {
     sf::Image sheet(sf::Vector2u(frameSize.x * static_cast<unsigned int>(frameCount), frameSize.y),
                     sf::Color::Transparent);
+    const bool vampireLike = primaryColor.b > primaryColor.r;
 
     for (int frame = 0; frame < frameCount; ++frame) {
         const sf::Color bodyColor = (frame == 0) ? primaryColor : secondaryColor;
         const unsigned int xOffset = frame * frameSize.x;
+        const unsigned int bob = (frame == 0) ? 0U : 1U;
+        const sf::Color outline(24, 20, 26, 230);
+        const sf::Color highlight(std::min(255, bodyColor.r + 42),
+                                  std::min(255, bodyColor.g + 42),
+                                  std::min(255, bodyColor.b + 42));
 
-        for (unsigned int y = 6; y < 28; ++y) {
-            for (unsigned int x = 9; x < 23; ++x) {
-                sheet.setPixel(sf::Vector2u(xOffset + x, y), bodyColor);
+        for (unsigned int y = 5 + bob; y < 29 + bob; ++y) {
+            for (unsigned int x = 8; x < 24; ++x) {
+                if (x == 8 || x == 23 || y == 5 + bob || y == 28 + bob) {
+                    sheet.setPixel(sf::Vector2u(xOffset + x, y), outline);
+                } else {
+                    sheet.setPixel(sf::Vector2u(xOffset + x, y), bodyColor);
+                }
             }
         }
 
-        for (unsigned int y = 2; y < 10; ++y) {
-            for (unsigned int x = 11; x < 21; ++x) {
-                sheet.setPixel(sf::Vector2u(xOffset + x, y), sf::Color(235, 220, 210));
+        for (unsigned int y = 8 + bob; y < 23 + bob; ++y) {
+            for (unsigned int x = 10; x < 14; ++x) {
+                sheet.setPixel(sf::Vector2u(xOffset + x, y), highlight);
             }
+        }
+
+        if (vampireLike) {
+            for (unsigned int y = 8 + bob; y < 29 + bob; ++y) {
+                sheet.setPixel(sf::Vector2u(xOffset + 7, y), sf::Color(45, 7, 54));
+                sheet.setPixel(sf::Vector2u(xOffset + 24, y), sf::Color(45, 7, 54));
+            }
+            for (unsigned int x = 10; x < 22; ++x) {
+                sheet.setPixel(sf::Vector2u(xOffset + x, 12 + bob), sf::Color(235, 235, 226));
+            }
+        } else {
+            for (unsigned int y = 7 + bob; y < 15 + bob; ++y) {
+                sheet.setPixel(sf::Vector2u(xOffset + 6, y), bodyColor);
+                sheet.setPixel(sf::Vector2u(xOffset + 25, y), bodyColor);
+            }
+            for (unsigned int y = 16 + bob; y < 21 + bob; ++y) {
+                for (unsigned int x = 21; x < 28; ++x) {
+                    sheet.setPixel(sf::Vector2u(xOffset + x, y), sf::Color(75, 75, 80));
+                }
+            }
+        }
+
+        for (unsigned int y = 2 + bob; y < 11 + bob; ++y) {
+            for (unsigned int x = 11; x < 21; ++x) {
+                sheet.setPixel(sf::Vector2u(xOffset + x, y), sf::Color(229, 214, 202));
+            }
+        }
+
+        sheet.setPixel(sf::Vector2u(xOffset + 13, 6 + bob), vampireLike ? sf::Color(210, 24, 45) : sf::Color(245, 210, 80));
+        sheet.setPixel(sf::Vector2u(xOffset + 19, 6 + bob), vampireLike ? sf::Color(210, 24, 45) : sf::Color(245, 210, 80));
+        sheet.setPixel(sf::Vector2u(xOffset + 15, 10 + bob), outline);
+        sheet.setPixel(sf::Vector2u(xOffset + 16, 10 + bob), outline);
+
+        if (vampireLike) {
+            sheet.setPixel(sf::Vector2u(xOffset + 14, 11 + bob), sf::Color::White);
+            sheet.setPixel(sf::Vector2u(xOffset + 18, 11 + bob), sf::Color::White);
         }
 
         const unsigned int footShift = (frame == 0) ? 0U : 2U;

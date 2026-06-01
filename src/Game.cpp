@@ -95,11 +95,22 @@ void Game::update() {
 }
 
 void Game::render() {
-    window.clear(sf::Color(30, 30, 42));
+    drawBackground();
+
+    std::vector<GameObject*> drawOrder;
+    drawOrder.reserve(objects.size());
     for (const auto& object : objects) {
+        drawOrder.push_back(object.get());
+    }
+    std::sort(drawOrder.begin(), drawOrder.end(), [](const GameObject* left, const GameObject* right) {
+        return left->getPosition().y < right->getPosition().y;
+    });
+
+    for (GameObject* object : drawOrder) {
         object->draw(window);
     }
     if (fontLoaded) {
+        drawHudPanel();
         window.draw(*hudText);
         if (won) {
             messageText->setString("You reached the tomb! Press R to restart.");
@@ -110,6 +121,65 @@ void Game::render() {
         }
     }
     window.display();
+}
+
+void Game::drawBackground() {
+    window.clear(sf::Color(22, 22, 34));
+
+    sf::RectangleShape grass(sf::Vector2f(static_cast<float>(WindowWidth), static_cast<float>(WindowHeight)));
+    grass.setFillColor(sf::Color(42, 68, 52));
+    window.draw(grass);
+
+    sf::RectangleShape sunWash(sf::Vector2f(static_cast<float>(WindowWidth), static_cast<float>(WindowHeight)));
+    sunWash.setFillColor(sf::Color(135, 125, 95, 34));
+    window.draw(sunWash);
+
+    sf::CircleShape moon(76.f);
+    moon.setOrigin(sf::Vector2f(76.f, 76.f));
+    moon.setPosition(sf::Vector2f(900.f, 96.f));
+    moon.setFillColor(sf::Color(235, 228, 176, 72));
+    window.draw(moon);
+
+    sf::CircleShape moonCore(42.f);
+    moonCore.setOrigin(sf::Vector2f(42.f, 42.f));
+    moonCore.setPosition(sf::Vector2f(900.f, 96.f));
+    moonCore.setFillColor(sf::Color(248, 239, 190, 105));
+    window.draw(moonCore);
+
+    sf::RectangleShape path(sf::Vector2f(1180.f, 118.f));
+    path.setOrigin(sf::Vector2f(590.f, 59.f));
+    path.setPosition(sf::Vector2f(555.f, 474.f));
+    path.setRotation(sf::degrees(-18.f));
+    path.setFillColor(sf::Color(91, 82, 65, 165));
+    window.draw(path);
+
+    for (unsigned int x = 24; x < WindowWidth; x += 64) {
+        for (unsigned int y = 70; y < WindowHeight; y += 58) {
+            sf::CircleShape tuft(3.f + static_cast<float>((x + y) % 4));
+            tuft.setOrigin(sf::Vector2f(tuft.getRadius(), tuft.getRadius()));
+            tuft.setPosition(sf::Vector2f(static_cast<float>(x), static_cast<float>(y)));
+            tuft.setFillColor(sf::Color(63, 91, 58, 150));
+            window.draw(tuft);
+        }
+    }
+
+    for (unsigned int i = 0; i < 8; ++i) {
+        sf::CircleShape stone(10.f + static_cast<float>(i % 3) * 3.f);
+        stone.setOrigin(sf::Vector2f(stone.getRadius(), stone.getRadius()));
+        stone.setScale(sf::Vector2f(1.35f, 0.55f));
+        stone.setPosition(sf::Vector2f(90.f + i * 118.f, 700.f - static_cast<float>((i * 47) % 360)));
+        stone.setFillColor(sf::Color(69, 73, 70, 120));
+        window.draw(stone);
+    }
+}
+
+void Game::drawHudPanel() {
+    sf::RectangleShape panel(sf::Vector2f(1000.f, 38.f));
+    panel.setPosition(sf::Vector2f(12.f, 8.f));
+    panel.setFillColor(sf::Color(12, 13, 18, 178));
+    panel.setOutlineColor(sf::Color(230, 205, 132, 135));
+    panel.setOutlineThickness(1.f);
+    window.draw(panel);
 }
 
 void Game::createWorld(unsigned int wolfCount) {

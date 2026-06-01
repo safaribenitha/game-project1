@@ -16,6 +16,11 @@ public:
 
 private:
     sf::Vector2f position;
+    sf::CircleShape shadow;
     sf::RectangleShape trunk;
+    sf::CircleShape canopyBack;
     sf::CircleShape canopy;
+    sf::CircleShape canopyLeft;
+    sf::CircleShape canopyRight;
+    sf::CircleShape canopyHighlight;
 };

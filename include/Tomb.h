@@ -16,6 +16,11 @@ public:
 
 private:
     sf::Vector2f position;
+    sf::CircleShape shadow;
     sf::RectangleShape base;
     sf::RectangleShape lid;
+    sf::RectangleShape face;
+    sf::RectangleShape crossVertical;
+    sf::RectangleShape crossHorizontal;
+    sf::RectangleShape crack;
 };

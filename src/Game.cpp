@@ -32,7 +32,8 @@ Game::Game(unsigned int wolfCount)
         legendText->setFillColor(sf::Color(242, 240, 222));
         legendText->setPosition(sf::Vector2f(18.f, 58.f));
         legendText->setString(
-            "WASD = move\n"
+            "W = move toward tomb\n"
+            "A/S/D = optional steering\n"
             "R = restart\n"
             "Grey wolves chase you\n"
             "Green cross heals\n"
@@ -157,17 +158,31 @@ void Game::drawBackground() {
     sunWash.setFillColor(sf::Color(135, 125, 95, 34));
     window.draw(sunWash);
 
-    sf::CircleShape moon(76.f);
-    moon.setOrigin(sf::Vector2f(76.f, 76.f));
-    moon.setPosition(sf::Vector2f(900.f, 96.f));
-    moon.setFillColor(sf::Color(235, 228, 176, 72));
-    window.draw(moon);
+    const sf::Vector2f sunPosition(900.f, 96.f);
+    for (unsigned int i = 0; i < 12; ++i) {
+        const float angle = static_cast<float>(i) * 30.f;
+        const float radians = angle * 3.14159265f / 180.f;
+        sf::RectangleShape ray(sf::Vector2f(12.f, 42.f));
+        ray.setOrigin(sf::Vector2f(6.f, 56.f));
+        ray.setPosition(sunPosition + sf::Vector2f(std::cos(radians) * 8.f, std::sin(radians) * 8.f));
+        ray.setRotation(sf::degrees(angle));
+        ray.setFillColor(sf::Color(255, 174, 50, 150));
+        window.draw(ray);
+    }
 
-    sf::CircleShape moonCore(42.f);
-    moonCore.setOrigin(sf::Vector2f(42.f, 42.f));
-    moonCore.setPosition(sf::Vector2f(900.f, 96.f));
-    moonCore.setFillColor(sf::Color(248, 239, 190, 105));
-    window.draw(moonCore);
+    sf::CircleShape sunGlow(74.f);
+    sunGlow.setOrigin(sf::Vector2f(74.f, 74.f));
+    sunGlow.setPosition(sunPosition);
+    sunGlow.setFillColor(sf::Color(255, 176, 45, 72));
+    window.draw(sunGlow);
+
+    sf::CircleShape sunCore(43.f);
+    sunCore.setOrigin(sf::Vector2f(43.f, 43.f));
+    sunCore.setPosition(sunPosition);
+    sunCore.setFillColor(sf::Color(255, 219, 74, 235));
+    sunCore.setOutlineColor(sf::Color(236, 120, 32, 210));
+    sunCore.setOutlineThickness(4.f);
+    window.draw(sunCore);
 
     sf::RectangleShape path(sf::Vector2f(1180.f, 118.f));
     path.setOrigin(sf::Vector2f(590.f, 59.f));
@@ -218,6 +233,7 @@ void Game::createWorld(unsigned int wolfCount) {
     auto tombObject = std::make_unique<Tomb>(sf::Vector2f(WindowWidth - 110.f, WindowHeight - 95.f));
     tomb = tombObject.get();
     objects.push_back(std::move(tombObject));
+    vampire->setAutoMoveTarget(tomb->getPosition());
 
     const sf::Vector2f treePositions[] = {
         {210.f, 330.f}, {360.f, 210.f}, {445.f, 510.f}, {620.f, 235.f}, {760.f, 430.f}, {560.f, 650.f}

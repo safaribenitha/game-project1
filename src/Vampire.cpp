@@ -9,7 +9,11 @@ void Vampire::update(float deltaTime) {
     sf::Vector2f direction(0.f, 0.f);
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
-        direction.y -= 1.f;
+        sf::Vector2f toTarget = autoMoveTarget - position;
+        const float targetLength = std::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y);
+        if (targetLength > 1.f) {
+            direction += toTarget / targetLength;
+        }
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
         direction.y += 1.f;
@@ -51,6 +55,10 @@ void Vampire::setHidden(bool hidden) {
 
 bool Vampire::isHidden() const {
     return hiddenFromSun;
+}
+
+void Vampire::setAutoMoveTarget(const sf::Vector2f& targetPosition) {
+    autoMoveTarget = targetPosition;
 }
 
 void Vampire::increaseDamage(int amount) {

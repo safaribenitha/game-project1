@@ -1,6 +1,6 @@
 # Vampire Survival
 
-Vampire Survival is a small C++/SFML survival game. You control a vampire racing across a moonlit field to reach a tomb before wolves and sunlight kill you.
+Vampire Survival is a small C++/SFML survival game. You control a vampire racing across a sunlight field to reach a tomb before wolves and sunlight kill you.
 
 ## Features
 
